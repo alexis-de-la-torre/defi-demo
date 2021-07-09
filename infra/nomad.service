@@ -1,0 +1,6 @@
+[Unit]
+Description=Nomad
+[Service]
+ExecStart=nomad agent -config=/etc/nomad.d/nomad.hcl
+[Install]
+WantedBy=multi-user.target
