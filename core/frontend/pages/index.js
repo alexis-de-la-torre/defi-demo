@@ -3,15 +3,12 @@ import {useEffect, useState} from "react";
 
 export default function Home() {
     const [provider, setProvider] = useState(null)
-    const [signer, setSigner] = useState(null)
     const [blockNumber, setBlockNumber] = useState(null)
 
     useEffect(() => {
         async function setupWeb3() {
             const provider = new ethers.providers.Web3Provider(window.ethereum)
-
             setProvider(provider)
-            setSigner(provider.getSigner())
         }
 
         setupWeb3()

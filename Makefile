@@ -11,7 +11,7 @@ blockchain:
 # TODO: Make building/deploying a generic function
 bootstraper:
 	@echo "» Building..."
-	docker build -t gcr.io/alexis-de-la-torre/bootstraper bootstraper
+	docker build -t gcr.io/alexis-de-la-torre/bootstraper core/bootstraper
 	docker push gcr.io/alexis-de-la-torre/bootstraper
 	@echo "» Deploying..."
 	nomad job run jobs/bootstraper.nomad

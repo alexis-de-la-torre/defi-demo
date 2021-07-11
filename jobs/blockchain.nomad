@@ -9,10 +9,24 @@ job "blockchain" {
 
     service {
       name = "blockchain"
-      port = "${NOMAD_HOST_PORT_rpc}"
+      tags = ["urlprefix-/blockchain"]
+      port = "rpc"
+
+      // TODO: Real health check (spring service with actuator?)
+      check {
+        name = "alive"
+        type = "script"
+        task = "blockchain"
+        command = "/bin/sh"
+        args = ["-c", "echo 0"]
+        interval = "5s"
+        timeout  = "10s"
+      }
 
       connect {
-        sidecar_service {}
+        sidecar_service {
+          tags = [""]
+        }
       }
     }
 
@@ -27,7 +41,7 @@ job "blockchain" {
       config {
         image = "trufflesuite/ganache-cli:v6.12.2"
         args = ["-p", "${NOMAD_HOST_PORT_rpc}"]
-        ports = ["jrpc"]
+        ports = ["rpc"]
       }
     }
   }
