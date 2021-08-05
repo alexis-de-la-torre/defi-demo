@@ -23,7 +23,8 @@
   },
   "homepage": "https://github.com/Alexis-De-La-Torre/crypto-soccer#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.1.0"
+    "@openzeppelin/contracts": "^4.1.0",
+    "axios": "^0.20.0"
   },
   "devDependencies": {
     "truffle": "^5.3.10",
