@@ -39,8 +39,8 @@ job "blockchain" {
       driver = "docker"
 
       resources {
-        memory = 300
-        memory_max = 600
+        memory = 600
+        memory_max = 800
       }
 
       config {
@@ -54,8 +54,8 @@ job "blockchain" {
       driver = "docker"
 
       resources {
-        memory = 200
-        memory_max = 700
+        memory = 500
+        memory_max = 1000
       }
 
       lifecycle {
@@ -87,9 +87,7 @@ job "blockchain" {
       driver = "docker"
 
       resources {
-        cpu = 100
-        memory = 600
-        memory_max = 1200
+        memory = 1500
       }
 
       lifecycle {
