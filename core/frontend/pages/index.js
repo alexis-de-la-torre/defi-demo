@@ -1,13 +1,18 @@
 import {ethers, utils, BigNumber} from "ethers"
 import {useEffect, useState} from "react";
-import {formatEther} from "ethers/lib/utils";
 
 export async function getStaticProps() {
-    const testTokenContractRes = await fetch('http://172.25.61.33:8080/contracts/test-token-contract')
+    const deploymentManagerHost = process.env['DEPLOYMENT_MANAGER_HOST'] || 'localhost'
+    const deploymentManagerPort = process.env['DEPLOYMENT_MANAGER_PORT'] || 8080
+    const deploymentManagerAddr = `http://${deploymentManagerHost}:${deploymentManagerPort}`
+
+    const testTokenContractRes = await fetch(`${deploymentManagerAddr}/contracts/test-token-contract`)
     const testTokenContract = await testTokenContractRes.json()
 
-    const deployerAddrRes = await fetch('http://172.25.61.33:8080/contracts/deployer')
+    const deployerAddrRes = await fetch(`${deploymentManagerAddr}/contracts/deployer`)
     const deployerAddr = (await deployerAddrRes.json()).address
+
+    console.log(process.env)
 
     return {
         props: {
@@ -20,7 +25,6 @@ export async function getStaticProps() {
 export default function Home({ deployerAddr, testTokenContract }) {
     const [provider, setProvider] = useState(null)
     const [blockNumber, setBlockNumber] = useState(null)
-    const [token, setToken] = useState(null)
     const [symbol, setSymbol] = useState(null)
     const [balance, setBalance] = useState(BigNumber.from(0))
 
@@ -48,8 +52,15 @@ export default function Home({ deployerAddr, testTokenContract }) {
         }
     }, [provider])
 
+    if (!testTokenContract || !deployerAddr) {
+        return <>loading...</>
+    }
+
     return <>
-        <strong>Block Number: </strong> {blockNumber || "Error"} <br/>
-        <strong>balance: </strong> {utils.formatEther(balance)} {symbol}
+        <strong>Block Number: </strong> {blockNumber || "Error"} <br/><br/>
+        <strong>Deployer Address: </strong> {deployerAddr}<br/><br/>
+        <strong>Token Symbol: </strong> {symbol} <br/>
+        <strong>Token Address: </strong> {testTokenContract.address} <br/>
+        <strong>Token Balance: </strong> {utils.formatEther(balance)} {symbol}
     </>
 }

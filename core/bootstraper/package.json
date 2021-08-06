@@ -8,8 +8,7 @@
   },
   "scripts": {
     "test": "truffle test",
-    "clean": "rm -rf build",
-    "export": "cp -r \"build/contracts/\" \"../frontend/abis\""
+    "clean": "rm -rf build"
   },
   "repository": {
     "type": "git",

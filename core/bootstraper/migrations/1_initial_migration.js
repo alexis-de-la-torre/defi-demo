@@ -5,7 +5,10 @@ const TestToken = artifacts.require("TestToken")
 
 module.exports = async function (deployer, network, accounts) {
   await deployer.deploy(Migrations)
+
   const testToken = await deployer.deploy(TestToken)
+
+  await testToken.mint(accounts[0], web3.utils.toWei('1000', 'ether'))
 
   const deploymentManagerHost = process.env["DEPLOYMENT_MANAGER_HOST"] || "localhost"
   const deploymentManagerPort = process.env["DEPLOYMENT_MANAGER_PORT"] || "8080"
