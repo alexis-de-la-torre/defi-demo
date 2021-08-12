@@ -14,6 +14,13 @@ blockchain:
 	@echo "» Deploying..."
 	nomad job run jobs/blockchain.nomad
 
+frontend:
+	@echo "» Building frontend..."
+	docker build core/frontend -t gcr.io/alexis-de-la-torre/frontend
+	docker push gcr.io/alexis-de-la-torre/frontend
+	@echo "» Deploying..."
+	nomad run jobs/frontend.nomad
+
 clean:
 	nomad job stop -purge bootstraper
 	nomad job stop -purge blockchain
