@@ -1,4 +1,4 @@
-package com.alexisdelatorre.deploymentmanager;
+package com.alexisdelatorre.deploymentmanager.contract;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

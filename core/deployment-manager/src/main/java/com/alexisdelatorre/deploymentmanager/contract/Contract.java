@@ -1,4 +1,4 @@
-package com.alexisdelatorre.deploymentmanager;
+package com.alexisdelatorre.deploymentmanager.contract;
 
 import lombok.Builder;
 import lombok.Data;
