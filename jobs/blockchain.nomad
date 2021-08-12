@@ -12,6 +12,21 @@ job "blockchain" {
       port "deployment_manager" {}
     }
 
+    meta {
+      mnemonic = "egg offer become stadium suspect world injury injury hungry divide goat banana"
+      deployer_address = "0x27E53c11C8394793EaB687c7f896D1DeCe894ba3"
+      deployer_private_key = "0x13a2f6287d22e311353054ff828a2efa2f511f6a2134135112fa9043979bba49"
+    }
+
+    service {
+      name = "deployment-manager"
+      port = "deployment_manager"
+
+      connect {
+        sidecar_service {}
+      }
+    }
+
     service {
       name = "blockchain"
       tags = ["urlprefix-/blockchain"]
@@ -45,7 +60,7 @@ job "blockchain" {
 
       config {
         image = "trufflesuite/ganache-cli:v6.12.2"
-        args = ["-p", "${NOMAD_HOST_PORT_rpc}"]
+        args = ["-p", "${NOMAD_HOST_PORT_rpc}", "-m", "${NOMAD_META_mnemonic}"]
         ports = ["rpc"]
       }
     }
@@ -101,6 +116,7 @@ job "blockchain" {
       env {
         GANACHE_PORT = "${NOMAD_HOST_PORT_rpc}"
         DEPLOYMENT_MANAGER_PORT = "${NOMAD_HOST_PORT_deployment_manager}"
+        MNEMONIC = "${NOMAD_META_mnemonic}"
       }
     }
   }

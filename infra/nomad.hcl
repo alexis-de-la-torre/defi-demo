@@ -12,9 +12,4 @@ server {
 client {
   enabled = true
   servers = ["127.0.0.1:4646"]
-
-  options {
-    "docker.auth.config" = "/root/.docker/config.json"
-    "docker.auth.helper" = "gcr"
-  }
 }
