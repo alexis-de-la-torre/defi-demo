@@ -14,11 +14,6 @@ export default function Home() {
     const [connector, setConnector] = useState()
 
     useEffect(() => {
-        const connector = new InjectedConnector()
-        setConnector(connector)
-    }, [])
-
-    useEffect(() => {
         const setupBlockNumber = async () => {
             if (library) {
                 setBlockNumber(await library.getBlockNumber())
