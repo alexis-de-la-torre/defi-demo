@@ -37,8 +37,9 @@ job "blockchain" {
       driver = "docker"
 
       resources {
-        cpu = 20
-        memory = 50
+        cpu = 100
+        memory = 100
+        memory_max = 600
       }
 
       config {
