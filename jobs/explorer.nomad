@@ -36,23 +36,14 @@ job "explorer" {
       }
     }
 
-    task "database" {
-      driver = "docker"
-
-      config {
-        image = "postgres:12.5"
-        args = ["-p", "${NOMAD_HOST_PORT_database}"]
-      }
-
-      env {
-        POSTGRES_USER = "postgres"
-        POSTGRES_PASSWORD = ""
-        POSTGRES_HOST_AUTH_METHOD = "trust"
-      }
-    }
-
     task "explorer" {
       driver = "docker"
+
+      resources {
+        cpu = 200
+        memory = 200
+        memory_max = 300
+      }
 
       config {
         image = "gcr.io/alexis-de-la-torre/explorer"
@@ -67,6 +58,32 @@ job "explorer" {
         SOCKET_ROOT = "/explorer"
         API_PATH = "/explorer"
         PORT = "${NOMAD_HOST_PORT_explorer}"
+      }
+    }
+
+    task "database" {
+      driver = "docker"
+
+      lifecycle {
+        hook = "prestart"
+        sidecar = true
+      }
+
+      resources {
+        cpu = 100
+        memory = 100
+        memory_max = 500
+      }
+
+      config {
+        image = "postgres:12.5"
+        args = ["-p", "${NOMAD_HOST_PORT_database}"]
+      }
+
+      env {
+        POSTGRES_USER = "postgres"
+        POSTGRES_PASSWORD = ""
+        POSTGRES_HOST_AUTH_METHOD = "trust"
       }
     }
   }
