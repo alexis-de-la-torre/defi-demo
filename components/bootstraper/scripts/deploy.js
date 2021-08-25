@@ -2,6 +2,16 @@ require("@nomiclabs/hardhat-web3")
 
 const axios = require('axios')
 
+function getDataManagerAddr() {
+    if (process.env['DATA_MANAGER_ADDR']) {
+        return process.env['DATA_MANAGER_ADDR']
+    } else {
+        const host = process.env['DATA_MANAGER_HOST'] || 'localhost'
+        const port = process.env['DATA_MANAGER_PORT'] || '8080'
+        return `http://${host}:${port}`
+    }
+}
+
 async function main() {
     const [deployer] = await ethers.getSigners()
 
@@ -21,10 +31,9 @@ async function main() {
 
     console.log('Saving contract information')
 
-    const dataManagerHost = process.env['DATA_MANAGER_HOST'] || 'localhost'
-    const dataManagerPort = process.env['DATA_MANAGER_PORT'] || '8080'
+    const dataManagerAddr = getDataManagerAddr()
 
-    const dataManagerAddr = `http://${dataManagerHost}:${dataManagerPort}`
+    // TODO: Clear all before saving
 
     await axios.post(`${dataManagerAddr}/contracts`, {name: 'test', address: test.address})
 }

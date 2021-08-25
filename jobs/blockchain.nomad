@@ -36,6 +36,11 @@ job "blockchain" {
     task "blockchain" {
       driver = "docker"
 
+      resources {
+        cpu = 20
+        memory = 50
+      }
+
       config {
         image = "ethereum/client-go"
         args = [
