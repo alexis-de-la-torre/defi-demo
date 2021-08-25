@@ -14,7 +14,7 @@ blockchain:
 
 blockchain-data-manager:
 	@echo "» Building Blockchain Data Manager"
-	cd components/blockchain-data-manager; mvn spring-boot:build-image
+	cd components/blockchain-data-manager; mvn -Dmaven.test.skip spring-boot:build-image
 	docker tag blockchain-data-manager:0.0.1-SNAPSHOT gcr.io/alexis-de-la-torre/blockchain-data-manager
 	docker push gcr.io/alexis-de-la-torre/blockchain-data-manager
 	@echo "» Building Bootstraper"
