@@ -31,6 +31,7 @@ job "frontend" {
 
       env {
         PORT = "${NOMAD_HOST_PORT_frontend}"
+        BLOCKCHAIN_DATA_MANAGER_ADDR= "https://alexisdelatorre.com/blockchain-data-manager"
       }
     }
   }

@@ -1,17 +1,38 @@
 import {useEffect, useState} from "react";
 
-import {Avatar, Button, Card, DatePicker, Modal, Rate, Statistic} from 'antd'
+import {Button, Card, Modal, Statistic} from 'antd'
 
-import {useWeb3React, Web3ReactProvider} from "@web3-react/core"
+import {useWeb3React} from "@web3-react/core"
 import {InjectedConnector} from '@web3-react/injected-connector'
 
-export default function Home() {
-    const {activate, deactivate, chainId, account, library} = useWeb3React()
+const blockchainDataManagerAddr = process.env['BLOCKCHAIN_DATA_MANAGER_ADDR'] || 'http://localhost:8080'
+
+async function getTestContract() {
+    try {
+        const res = await fetch(`${blockchainDataManagerAddr}/contracts/test`)
+        return await res.json()
+    } catch (e) {
+        console.log('Unable to get Token Contract')
+        console.error(e)
+        return null
+    }
+}
+
+export async function getServerSideProps() {
+    const testContract = await getTestContract()
+
+    return {
+        props: {
+            testContract
+        }
+    }
+}
+
+export default function Home({testContract}) {
+    const {activate, chainId, account, library} = useWeb3React()
     const [blockNumber, setBlockNumber] = useState(0)
     const [signature, setSignature] = useState(null)
     const [isModalVisible, setIsModalVisible] = useState(false)
-
-    const [connector, setConnector] = useState()
 
     useEffect(() => {
         const setupBlockNumber = async () => {
@@ -55,6 +76,9 @@ export default function Home() {
                                 <Statistic title='Block Number' value={blockNumber}/>
                             </div>
                         </Card>
+                        {testContract && <>
+                            <Card title={testContract.name}>{testContract.address}</Card>
+                        </>}
                         <Card title='Sign Message'>
                             <p className='text-lg'>Message: 👋👋</p>
                             <Button onClick={signMessage} type='primary' size='large'>Sign</Button>
