@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 
-import {Button, Card, Divider, Input, InputNumber, Modal, Select, Spin, Statistic} from 'antd'
+import {Button, Card, Divider, Input, Select, Spin, Statistic} from 'antd'
 
 import {useWeb3React} from "@web3-react/core"
 import {ethers, utils} from 'ethers'
@@ -82,10 +82,6 @@ export default function Home({clubs: rclubs, faucetAddr}) {
         const a = clubs.find(c => c.meta.name === clubName)
         await setSelectedClub(a)
         await setBalance(await a.contract.balanceOf(account))
-    }
-
-    if (!account) {
-        return <Card>Please connect your wallet</Card>
     }
 
     if (!selectedClub) {

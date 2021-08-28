@@ -3,7 +3,7 @@ import 'tailwindcss/tailwind.css'
 
 import {useWeb3React, Web3ReactProvider} from "@web3-react/core"
 import {Web3Provider} from '@ethersproject/providers'
-import {Button, Divider, Statistic} from "antd";
+import {Alert, Button, Divider, Statistic} from "antd";
 import {InjectedConnector} from "@web3-react/injected-connector";
 import {useEffect, useState} from "react";
 import Link from 'next/link'
@@ -55,7 +55,15 @@ function Layout({children}) {
             <div className='flex-1 flex justify-center items-center p-10'>
                 <div className='flex-1 flex justify-center items-center p-10'>
                     <div className='container mx-auto max-w-2xl flex flex-col space-y-8'>
-                        {children}
+                        {!account && (
+                            < Alert
+                                message="Disconnected"
+                                description="Please connect your wallet"
+                                type="warning"
+                                showIcon
+                            />
+                        )}
+                        {account && children}
                     </div>
                 </div>
             </div>
