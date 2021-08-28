@@ -1,4 +1,4 @@
-all: blockchain blockchain-data-manager explorer frontend
+all: blockchain faucet blockchain-data-manager explorer frontend
 
 clean:
 	-nomad job stop -purge blockchain
@@ -11,6 +11,13 @@ blockchain:
 	@echo "» No building necessary for Blockchain"
 	@echo "» Deploying Blockchain"
 	nomad job run jobs/blockchain.nomad
+
+faucet:
+	@echo "» Building Faucet"
+	docker build -t gcr.io/alexis-de-la-torre/faucet components/faucet
+	docker push gcr.io/alexis-de-la-torre/faucet
+	@echo "» Deploying Faucet"
+	nomad job run jobs/faucet.nomad
 
 blockchain-data-manager:
 	@echo "» Building Blockchain Data Manager"
@@ -37,4 +44,4 @@ frontend:
 	@echo "» Deploying Frontend"
 	nomad job run jobs/frontend.nomad
 
-.PHONY: all blockchain blockchain-data-manager explorer frontend
+.PHONY: all blockchain faucet blockchain-data-manager explorer frontend
