@@ -37,9 +37,9 @@ job "blockchain" {
       driver = "docker"
 
       resources {
-        cpu = 100
-        memory = 100
-        memory_max = 600
+        cpu = 300
+        memory = 400
+        memory_max = 1000
       }
 
       config {
@@ -52,7 +52,9 @@ job "blockchain" {
           "--http.port", "${NOMAD_HOST_PORT_blockchain}",
           "--http.vhosts", "*",
           "--http.corsdomain", "*",
+          "--txpool.lifetime", "0h1m0s",
           "--http.api", "eth,net,web3,txpool,debug",
+          "--verbosity", "5"
         ]
       }
     }
