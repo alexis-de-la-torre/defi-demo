@@ -3,14 +3,20 @@ require("@nomiclabs/hardhat-web3")
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const actuator = require('express-actuator')
 
 const app = express()
+const router = express.Router()
+
 const port = process.env['PORT'] || 8080
+const basePath = process.env['BASE_PATH'] || '/faucet'
 
 app.use(cors())
 app.use(bodyParser.json())
 
-app.post('/', async (req, res) => {
+router.use(actuator())
+
+router.post('/withdrawals', async (req, res) => {
     const {address, qty} = req.body
 
     if (qty > 10) {
@@ -33,6 +39,8 @@ app.post('/', async (req, res) => {
     res.send(`Sending ${qty} ETH to ${address}`)
 })
 
+app.use(basePath, router)
+
 app.listen(port, () => {
-    console.log(`Faucet app listening at http://localhost:${port}`)
+    console.log(`Faucet app listening at http://localhost:${port}${basePath}`)
 })
