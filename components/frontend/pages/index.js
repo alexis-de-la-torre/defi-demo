@@ -31,6 +31,10 @@ export async function getServerSideProps() {
 }
 
 function Balance({qty, symbol, text, stacked}) {
+    if (!qty || !symbol) {
+        return <Spin size='small'/>
+    }
+
     const containerClass = !stacked
         ? 'flex space-x-1 p-2 font-mono text-xs text-gray-600'
         : 'flex flex-col p-1 font-mono text-xs text-gray-600'
@@ -55,79 +59,81 @@ function ClubTitle({club}) {
     )
 }
 
-export default function Home({clubs: clubsInfo}) {
+export default function Home({clubs}) {
     const {chainId, account, library} = useWeb3React()
 
-    const [clubsLoaded, setClubsLoaded] = useState(false)
-    const [clubs, setClubs] = useState([])
+    const [contracts, setContracts] = useState({})
+    const [symbols, setSymbols] = useState({})
+    const [totalSupplies, setTotalSupplies] = useState({})
+    const [isMinterList, setIsMinterList] = useState({})
+    const [balances, setBalances] = useState({})
 
-    const [mintBurnQty, setMintBurnQty] = useState(0)
+    const [mintBurnQuantities, setMintBurnQuantities] = useState({})
 
     useEffect(() => {
         if (!library) return
 
         const setupContracts = async () => {
-            let clubsAcc = []
-            let mintBurnQtyAcc = {}
+            for (const club of clubs) {
+                const contract = new ethers.Contract(club.address, club.abi, library.getSigner())
 
-            for (const clubInfo of clubsInfo) {
-                const contract = new ethers.Contract(clubInfo.address, clubInfo.abi, library.getSigner())
+                setContracts(contracts => ({...contracts, [club.name]: contract}))
 
-                const MINTER_ROLE = await contract.MINTER_ROLE()
+                contract.symbol()
+                    .then(symbol => setSymbols(symbols => ({...symbols, [club.name]: symbol})))
 
-                const club = {
-                    ...clubInfo,
-                    contract,
-                    symbol: await contract.symbol(),
-                    totalSupply: await contract.totalSupply(),
-                    isMinter: await contract.hasRole(MINTER_ROLE, account),
-                    balance: await contract.balanceOf(account),
-                }
-
-                delete club.id
-
-                clubsAcc.push(club)
-                mintBurnQtyAcc[club.name] = 0
+                setMintBurnQuantities(mintBurnQty => ({...mintBurnQty, [club.name]: 0}))
             }
-
-            setClubs(clubsAcc)
-            setMintBurnQty(mintBurnQtyAcc)
-
-            setClubsLoaded(true)
         }
 
         setupContracts()
-    }, [library, chainId, account, clubsInfo])
+    }, [library, clubs, account])
 
-    if (!clubsLoaded) {
-        return (
-            <div className='h-full flex justify-center items-center'>
-                <Spin/>
-            </div>
-        )
-    }
+    useEffect(() => {
+        if (Object.keys(contracts).length === 0) return
+
+        const setupClubs = async () => {
+            const MINTER_ROLE = await contracts[clubs[0].name].MINTER_ROLE()
+
+            for (const club of clubs) {
+                const contract = contracts[club.name]
+
+                contract.totalSupply()
+                    .then(totalSupply => {
+                        setTotalSupplies(totalSupplies => ({ ...totalSupplies, [club.name]: totalSupply }))
+                    })
+
+                contract.balanceOf(account)
+                    .then(balance => setBalances(balances => ({...balances, [club.name]: balance})))
+
+                contract.hasRole(MINTER_ROLE, account)
+                    .then(isMinter => setIsMinterList(isMinterList => ({...isMinterList, [club.name]: isMinter})))
+            }
+        }
+
+        setupClubs()
+    }, [contracts])
 
     const handleMint = async club => {
-        if (!mintBurnQty[club.name]) {
+        if (!mintBurnQuantities[club.name]) {
             message.error('Enter a valid quantity to Mint')
             return
         }
 
-        await club.contract
-            .mint(account, utils.parseEther(mintBurnQty[club.name].toString()))
+        await contracts[club.name].mint(account, utils.parseEther(mintBurnQuantities[club.name].toString()))
     }
 
     const handleBurn = async club => {
-        if (!mintBurnQty[club.name]) {
+        if (!mintBurnQuantities[club.name]) {
             message.error('Enter a valid quantity to Burn')
             return
         }
 
-        await club.contract.burn(utils.parseEther(mintBurnQty[club.name].toString()))
+        await contracts[club.name].burn(utils.parseEther(mintBurnQuantities[club.name].toString()))
     }
 
     const handleApprove = async club => {
-        await club.contract.becomeMinter()
+        await contracts[club.name].becomeMinter()
     }
 
     const copyToClipboard = text => {
@@ -141,26 +147,27 @@ export default function Home({clubs: clubsInfo}) {
                 {clubs.map(club => (
                     <Card
                         title={<ClubTitle club={club}/>}
-                        extra={<Balance qty={club.totalSupply} symbol={club.symbol} text='Total Supply' stacked/>}
+                        extra={<Balance qty={totalSupplies[club.name]} symbol={symbols[club.name]} text='Total Supply' stacked/>}
                         key={club.name}
                     >
                         <div className='flex flex-col space-y-4'>
                             <Input
-                                value={mintBurnQty[club.name]}
+                                value={mintBurnQuantities[club.name]}
                                 onChange={e => {
-                                    if (!e.target.value) setMintBurnQty({...mintBurnQty, [club.name]: null})
-                                    else setMintBurnQty({...mintBurnQty, [club.name]: Number(e.target.value)} )
+                                    if (!e.target.value) setMintBurnQuantities({...mintBurnQuantities, [club.name]: null})
+                                    else setMintBurnQuantities({...mintBurnQuantities, [club.name]: Number(e.target.value)} )
                                 }}
                                 min={0}
                                 type='number'
-                                suffix={<Balance qty={club.balance} symbol={club.symbol}/>}
-                                disabled={!club.isMinter}
+                                suffix={<Balance qty={balances[club.name]} symbol={symbols[club.name]}/>}
+                                disabled={!isMinterList[club.name]}
                             />
                             <div className='flex space-x-4'>
-                                {!club.isMinter && (
+                                {isMinterList[club.name] === undefined && <div className='w-full text-center'><Spin/></div>}
+                                {isMinterList[club.name] === false && (
                                     <Button onClick={() => handleApprove(club)} className='w-full' type='primary' ghost>Approve</Button>
                                 )}
-                                {club.isMinter && (
+                                {isMinterList[club.name] === true && (
                                     <div className='w-full flex space-x-2'>
                                         <Button onClick={() => handleMint(club)} type='primary' ghost className='w-full'>💎 Mint</Button>
                                         <Button onClick={() => handleBurn(club)} className='w-full' danger>🔥 Burn</Button>
