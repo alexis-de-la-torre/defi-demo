@@ -40,13 +40,13 @@ job "explorer" {
       driver = "docker"
 
       resources {
-        cpu = 200
+        cpu = 400
         memory = 200
-        memory_max = 300
+        memory_max = 1000
       }
 
       config {
-        image = "gcr.io/alexis-de-la-torre/explorer"
+        image = "gcr.io/alexis-de-la-torre/explorer:1.0.0"
       }
 
       env {

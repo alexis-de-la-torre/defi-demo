@@ -1,6 +1,24 @@
 require("@nomiclabs/hardhat-web3")
 
+const hre = require("hardhat")
 const axios = require('axios')
+
+const clubsAddr = `${getDataManagerAddr()}/clubs`
+
+const clubs = [
+    {name: 'bayer-munchen', displayName: 'FC Bayern München', symbol: 'BAY'},
+    {name: 'manchester', displayName: 'Manchester City', symbol: 'MAN'},
+    {name: 'barcelona', displayName: 'FC Barcelona', symbol: 'BAR'},
+    {name: 'real-madrid', displayName: 'Real Madrid', symbol: 'RMD'},
+    {name: 'liverpool', displayName: 'Liverpool', symbol: 'LVP'},
+    {name: 'atletico-madrid', displayName: 'Atletico Madrid', symbol: 'AMD'},
+    {name: 'chelsea', displayName: 'Chelsea', symbol: 'CHL'},
+    {name: 'paris-saint-germain', displayName: 'Paris Saint-Germain', symbol: 'PSG'},
+    {name: 'manchester-united', displayName: 'Manchester United', symbol: 'MCH'},
+    {name: 'sevilla', displayName: 'Sevilla FC', symbol: 'SEV'},
+]
+
+let contracts = {}
 
 function getDataManagerAddr() {
     if (process.env['DATA_MANAGER_ADDR']) {
@@ -8,7 +26,8 @@ function getDataManagerAddr() {
     } else {
         const host = process.env['DATA_MANAGER_HOST'] || 'localhost'
         const port = process.env['DATA_MANAGER_PORT'] || '8080'
-        return `http://${host}:${port}`
+        const path = process.env['DATA_MANAGER_PATH'] || '/blockchain-data-manager'
+        return `http://${host}:${port}${path}`
     }
 }
 
@@ -18,24 +37,43 @@ async function main() {
     console.log("Deploying contract with the account:", deployer.address)
     console.log("Account balance:", (await deployer.getBalance()).toString())
 
-    console.log("Deploying TEST contract")
+    const Club = await ethers.getContractFactory("Club")
 
-    const Test = await ethers.getContractFactory("Test")
-    const test = await Test.deploy()
+    console.log(`Deploying ${clubs.length} Club contracts`)
 
-    console.log("Contract address:", test.address)
+    for (const club of clubs) {
+        console.log(`Deploying Contract for ${club.displayName}`)
 
-    console.log(`Minting some TEST to`, deployer.address)
+        const contract = await Club.deploy(club.displayName, club.symbol)
 
-    await test.mint(deployer.address, ethers.utils.parseEther('5000.00'))
+        contracts[club.name] = contract.address
 
-    console.log('Saving contract information')
+        console.log("Contract address:", contract.address)
+    }
 
-    const dataManagerAddr = getDataManagerAddr()
+    console.log('Deleting existing clubs')
 
-    // TODO: Clear all before saving
+    const allClubs = (await axios.get(clubsAddr)).data
 
-    await axios.post(`${dataManagerAddr}/contracts`, {name: 'test', address: test.address})
+    for (const club of allClubs) {
+        await axios.delete(`${clubsAddr}/${club.name}`)
+        console.log('Deleted', club.displayName)
+    }
+
+    console.log(`Saving Club contract information for ${clubs.length} clubs`)
+
+    const clubAbi = (await hre.artifacts.readArtifact("Club")).abi
+
+    for (const club of clubs) {
+        const body = {
+            name: club.name,
+            displayName: club.displayName,
+            address: contracts[club.name],
+            abi: JSON.stringify(clubAbi)
+        }
+
+        await axios.post(clubsAddr, body)
+    }
 }
 
 main()
