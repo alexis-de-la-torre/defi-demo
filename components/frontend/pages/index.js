@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 
-import {Avatar, Button, Card, Divider, Input, Select, Spin, Statistic, message} from 'antd'
+import {Avatar, Button, Card, Divider, Input, Spin, message} from 'antd'
 
 import {useWeb3React} from "@web3-react/core"
 import {ethers, utils} from 'ethers'
@@ -18,7 +18,8 @@ async function getClubs(addr) {
 }
 
 export async function getServerSideProps() {
-    const blockchainDataManagerAddr = process.env['BLOCKCHAIN_DATA_MANAGER_ADDR'] || 'http://localhost:8080'
+    const blockchainDataManagerAddr =
+        process.env['BLOCKCHAIN_DATA_MANAGER_ADDR'] || 'http://localhost:8080'
 
     const clubs = await getClubs(blockchainDataManagerAddr)
 
@@ -59,11 +60,8 @@ export default function Home({clubs: clubsInfo}) {
 
     const [clubsLoaded, setClubsLoaded] = useState(false)
     const [clubs, setClubs] = useState([])
-    const [selectedClub, setSelectedClub] = useState()
 
-    const [balance, setBalance] = useState(0)
     const [mintBurnQty, setMintBurnQty] = useState(0)
-    // const [totalSupply, setTotalSupply] = useState()
 
     useEffect(() => {
         if (!library) return
@@ -93,16 +91,13 @@ export default function Home({clubs: clubsInfo}) {
             }
 
             setClubs(clubsAcc)
-            setSelectedClub(clubsAcc[0])
             setMintBurnQty(mintBurnQtyAcc)
 
             setClubsLoaded(true)
-
-            // setBalance(await clubsAcc[0].contract.balanceOf(account))
         }
 
         setupContracts()
-    }, [library, chainId])
+    }, [library, chainId, account, clubsInfo])
 
     if (!clubsLoaded) {
         return (
@@ -118,7 +113,8 @@ export default function Home({clubs: clubsInfo}) {
             return
         }
 
-        await club.contract.mint(account, utils.parseEther(mintBurnQty[club.name].toString()))
+        await club.contract
+            .mint(account, utils.parseEther(mintBurnQty[club.name].toString()))
     }
 
     const handleBurn = async club => {
@@ -146,6 +142,7 @@ export default function Home({clubs: clubsInfo}) {
                     <Card
                         title={<ClubTitle club={club}/>}
                         extra={<Balance qty={club.totalSupply} symbol={club.symbol} text='Total Supply' stacked/>}
+                        key={club.name}
                     >
                         <div className='flex flex-col space-y-4'>
                             <Input
@@ -161,9 +158,7 @@ export default function Home({clubs: clubsInfo}) {
                             />
                             <div className='flex space-x-4'>
                                 {!club.isMinter && (
-                                    <div className='w-full bg-green-200'>
-                                        <Button onClick={() => handleApprove(club)} className='w-full' type='primary'>Approve</Button>
-                                    </div>
+                                    <Button onClick={() => handleApprove(club)} className='w-full' type='primary' ghost>Approve</Button>
                                 )}
                                 {club.isMinter && (
                                     <div className='w-full flex space-x-2'>
