@@ -7,6 +7,7 @@ import {Alert, Button, Divider, Statistic} from "antd";
 import {InjectedConnector} from "@web3-react/injected-connector";
 import {useEffect, useState} from "react";
 import Link from 'next/link'
+import CenteredContainer from "../components/CenteredContainer";
 
 function getLibrary(provider) {
     const library = new Web3Provider(provider)
@@ -36,36 +37,39 @@ function Layout({children}) {
     return (
         <div className='flex flex-col h-screen'>
             <div className='border-b border-gray-100'>
-                <div className='flex justify-between container mx-auto max-w-screen-xl py-4'>
+                <div className='flex justify-between container mx-auto max-w-screen-xl py-6'>
                     <div className='flex items-center space-x-10'>
                         <div className='font-mono font-bold text-lg tracking-wider uppercase'>
                             <Link href='/'><a>💰⚽ Crypto Soccer</a></Link>
                         </div>
-                        <Divider type='vertical'/>
+                        <div>
+                            <Divider type='vertical'/>
+                        </div>
+                        <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
+                            <Link href='/'><a>Mint and Burn</a></Link>
+                        </div>
                         <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
                             <Link href='/faucet'><a>Faucet</a></Link>
                         </div>
                     </div>
                     <div className='flex space-x-10 items-center'>
-                        {account && <div>{account}</div>}
+                        {account && <div className='text-gray-600 font-mono text-xs'>{account}</div>}
                         {!account && <Button onClick={connect} type='primary'>Connect</Button>}
                     </div>
                 </div>
             </div>
-            <div className='flex-1 flex justify-center items-center p-10'>
-                <div className='flex-1 flex justify-center items-center p-10'>
-                    <div className='container mx-auto max-w-2xl flex flex-col space-y-8'>
-                        {!account && (
-                            < Alert
-                                message="Disconnected"
-                                description="Please connect your wallet"
-                                type="warning"
-                                showIcon
-                            />
-                        )}
-                        {account && children}
-                    </div>
-                </div>
+            <div className='flex-1'>
+                {!account && (
+                    <CenteredContainer>
+                        < Alert
+                            message="Disconnected"
+                            description="Please connect your wallet"
+                            type="warning"
+                            showIcon
+                        />
+                    </CenteredContainer>
+                )}
+                {account && children}
             </div>
             <div className='border-t border-gray-100'>
                 <div className='flex container mx-auto max-w-screen-xl p-4'>

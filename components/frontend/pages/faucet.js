@@ -2,6 +2,7 @@ import {Button, Card, InputNumber} from "antd";
 import {useState} from "react";
 import axios from "axios";
 import {useWeb3React} from "@web3-react/core";
+import CenteredContainer from "../components/CenteredContainer";
 
 export async function getServerSideProps() {
     const faucetAddr = process.env['FAUCET_ADDR'] || 'http://localhost:8081'
@@ -34,11 +35,13 @@ export default function Faucet({faucetAddr}) {
     }
 
     return (
-        <Card title='Faucet 🥛'>
-            <div className='flex space-x-4'>
-                <InputNumber value={faucetQty} onChange={setFaucetQty} min={0}/>
-                <Button onClick={handleWithdraw} loading={withdrawing}>Get Ether</Button>
-            </div>
-        </Card>
+        <CenteredContainer>
+            <Card title='Faucet'>
+                <div className='flex space-x-4'>
+                    <InputNumber value={faucetQty} onChange={setFaucetQty} min={0}/>
+                    <Button onClick={handleWithdraw} loading={withdrawing}>Get Ether</Button>
+                </div>
+            </Card>
+        </CenteredContainer>
     )
 }

@@ -1,4 +1,4 @@
-all: blockchain faucet blockchain-data-manager explorer frontend
+all: blockchain faucet blockchain-data-manager frontend explorer
 
 clean:
 	-nomad job stop -purge blockchain
@@ -30,13 +30,6 @@ blockchain-data-manager:
 	@echo "» Deploying Blockchain Data Manager"
 	nomad job run jobs/blockchain-data-manager.nomad
 
-explorer:
-	@echo "» Building Explorer"
-	docker build -t gcr.io/alexis-de-la-torre/explorer:1.0.0 components/explorer
-	docker push gcr.io/alexis-de-la-torre/explorer:1.0.0
-	@echo "» Deploying Explorer"
-	nomad job run jobs/explorer.nomad
-
 frontend:
 	@echo "» Building Frontend"
 	docker build -t gcr.io/alexis-de-la-torre/frontend components/frontend
@@ -44,4 +37,11 @@ frontend:
 	@echo "» Deploying Frontend"
 	nomad job run jobs/frontend.nomad
 
-.PHONY: all blockchain faucet blockchain-data-manager explorer frontend
+explorer:
+	@echo "» Building Explorer"
+	docker build -t gcr.io/alexis-de-la-torre/explorer:1.0.0 components/explorer
+	docker push gcr.io/alexis-de-la-torre/explorer:1.0.0
+	@echo "» Deploying Explorer"
+	nomad job run jobs/explorer.nomad
+
+.PHONY: all blockchain faucet blockchain-data-manager frontend explorer
