@@ -95,6 +95,8 @@ export default function Home({clubs}) {
         const setupClubs = async () => {
             const MINTER_ROLE = await contracts[clubs[0].name].MINTER_ROLE()
 
+            // Will have performance issues with a big number of clubs
+            // TODO: Use restrained parallel execution
             for (const club of clubs) {
                 const contract = contracts[club.name]
 
@@ -104,15 +106,19 @@ export default function Home({clubs}) {
                     })
 
                 contract.balanceOf(account)
-                    .then(balance => setBalances(balances => ({...balances, [club.name]: balance})))
+                    .then(balance => {
+                        setBalances(balances => ({...balances, [club.name]: balance}))
+                    })
 
                 contract.hasRole(MINTER_ROLE, account)
-                    .then(isMinter => setIsMinterList(isMinterList => ({...isMinterList, [club.name]: isMinter})))
+                    .then(isMinter => {
+                        setIsMinterList(isMinterList => ({...isMinterList, [club.name]: isMinter}))
+                    })
             }
         }
 
         setupClubs()
-    }, [contracts])
+    }, [contracts, account])
 
     const handleMint = async club => {
         if (!mintBurnQuantities[club.name]) {
@@ -120,7 +126,8 @@ export default function Home({clubs}) {
             return
         }
 
-        await contracts[club.name].mint(account, utils.parseEther(mintBurnQuantities[club.name].toString()))
+        await contracts[club.name]
+            .mint(account, utils.parseEther(mintBurnQuantities[club.name].toString()))
     }
 
     const handleBurn = async club => {
@@ -129,7 +136,8 @@ export default function Home({clubs}) {
             return
         }
 
-        await contracts[club.name].burn(utils.parseEther(mintBurnQuantities[club.name].toString()))
+        await contracts[club.name]
+            .burn(utils.parseEther(mintBurnQuantities[club.name].toString()))
     }
 
     const handleApprove = async club => {

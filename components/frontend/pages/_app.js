@@ -3,7 +3,7 @@ import 'tailwindcss/tailwind.css'
 
 import {useWeb3React, Web3ReactProvider} from "@web3-react/core"
 import {Web3Provider} from '@ethersproject/providers'
-import {Alert, Button, Divider, Statistic} from "antd";
+import {Alert, Button, Divider, Spin, Statistic} from "antd";
 import {InjectedConnector} from "@web3-react/injected-connector";
 import {useEffect, useState} from "react";
 import Link from 'next/link'
@@ -16,9 +16,11 @@ function getLibrary(provider) {
 }
 
 function Layout({children}) {
-    const {chainId, account, library, activate} = useWeb3React()
+    const {chainId, account, library, activate, active} = useWeb3React()
 
     const [blockNumber, setBlockNumber] = useState(0)
+
+    useEffect(() => connect(), [])
 
     useEffect(() => {
         const setupBlockNumber = async () => {
@@ -59,7 +61,12 @@ function Layout({children}) {
                 </div>
             </div>
             <div className='flex-1'>
-                {!account && (
+                {!active && account && (
+                    <div className='h-full flex items-center justify-center bg-gray-50'>
+                        <Spin size='large'/>
+                    </div>
+                )}
+                {!active && !account && (
                     <CenteredContainer>
                         < Alert
                             message="Disconnected"
