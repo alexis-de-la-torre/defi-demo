@@ -1,10 +1,11 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 
 import {Avatar, Button, Card, Divider, Input, Spin, message} from 'antd'
 
 import {useWeb3React} from "@web3-react/core"
 import {ethers, utils} from 'ethers'
 import clipboard from 'copy-to-clipboard'
+import {Context} from "./_app";
 
 async function getClubs(addr) {
     try {
@@ -60,6 +61,8 @@ function ClubTitle({club}) {
 }
 
 export default function Home({clubs}) {
+    const {blockNumber} = useContext(Context)
+
     const {chainId, account, library} = useWeb3React()
 
     const [contracts, setContracts] = useState({})
@@ -118,7 +121,7 @@ export default function Home({clubs}) {
         }
 
         setupClubs()
-    }, [contracts, account])
+    }, [contracts, account, blockNumber])
 
     const handleMint = async club => {
         if (!mintBurnQuantities[club.name]) {
@@ -173,7 +176,7 @@ export default function Home({clubs}) {
                             <div className='flex space-x-4'>
                                 {isMinterList[club.name] === undefined && <div className='w-full text-center'><Spin/></div>}
                                 {isMinterList[club.name] === false && (
-                                    <Button onClick={() => handleApprove(club)} className='w-full' type='primary' ghost>Approve</Button>
+                                    <Button onClick={() => handleApprove(club)} className='w-full' type='primary' ghost>Get Minter Permission</Button>
                                 )}
                                 {isMinterList[club.name] === true && (
                                     <div className='w-full flex space-x-2'>

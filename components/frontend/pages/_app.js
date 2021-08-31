@@ -5,9 +5,11 @@ import {useWeb3React, Web3ReactProvider} from "@web3-react/core"
 import {Web3Provider} from '@ethersproject/providers'
 import {Alert, Button, Divider, Spin, Statistic} from "antd";
 import {InjectedConnector} from "@web3-react/injected-connector";
-import {useEffect, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 import Link from 'next/link'
 import CenteredContainer from "../components/CenteredContainer";
+
+export const Context = createContext()
 
 function getLibrary(provider) {
     const library = new Web3Provider(provider)
@@ -16,25 +18,29 @@ function getLibrary(provider) {
 }
 
 function Layout({children}) {
+    const {blockNumber, setBlockNumber} = useContext(Context)
+
     const {chainId, account, library, activate, active} = useWeb3React()
 
-    const [blockNumber, setBlockNumber] = useState(0)
-
     useEffect(() => connect(), [])
-
-    useEffect(() => {
-        const setupBlockNumber = async () => {
-            if (library) {
-                setBlockNumber(await library.getBlockNumber())
-            }
-        }
-        setupBlockNumber()
-    }, [library, chainId])
 
     const connect = () => {
         const connector = new InjectedConnector({})
         activate(connector)
     }
+
+    useEffect(() => {
+        if (library) {
+            const interval = setInterval(() => {
+                library.getBlockNumber()
+                    .then(setBlockNumber)
+            }, 5000);
+
+            return () => {
+                clearInterval(interval)
+            }
+        }
+    }, [library])
 
     return (
         <div className='flex flex-col h-screen'>
@@ -92,11 +98,15 @@ function Layout({children}) {
 }
 
 function MyApp({Component, pageProps}) {
+    const [blockNumber, setBlockNumber] = useState(0)
+
     return (
         <Web3ReactProvider getLibrary={getLibrary}>
-            <Layout>
-                <Component {...pageProps} />
-            </Layout>
+            <Context.Provider value={{blockNumber, setBlockNumber}}>
+                    <Layout>
+                        <Component {...pageProps} />
+                    </Layout>
+            </Context.Provider>
         </Web3ReactProvider>
     )
 }
