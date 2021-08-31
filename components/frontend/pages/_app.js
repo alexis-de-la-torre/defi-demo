@@ -3,11 +3,13 @@ import 'tailwindcss/tailwind.css'
 
 import {useWeb3React, Web3ReactProvider} from "@web3-react/core"
 import {Web3Provider} from '@ethersproject/providers'
-import {Alert, Button, Divider, Statistic} from "antd";
+import {Alert, Button, Divider, Spin, Statistic} from "antd";
 import {InjectedConnector} from "@web3-react/injected-connector";
-import {useEffect, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 import Link from 'next/link'
 import CenteredContainer from "../components/CenteredContainer";
+
+export const Context = createContext()
 
 function getLibrary(provider) {
     const library = new Web3Provider(provider)
@@ -16,23 +18,29 @@ function getLibrary(provider) {
 }
 
 function Layout({children}) {
-    const {chainId, account, library, activate} = useWeb3React()
+    const {blockNumber, setBlockNumber} = useContext(Context)
 
-    const [blockNumber, setBlockNumber] = useState(0)
+    const {chainId, account, library, activate, active} = useWeb3React()
 
-    useEffect(() => {
-        const setupBlockNumber = async () => {
-            if (library) {
-                setBlockNumber(await library.getBlockNumber())
-            }
-        }
-        setupBlockNumber()
-    }, [library, chainId])
+    useEffect(() => connect(), [])
 
     const connect = () => {
         const connector = new InjectedConnector({})
         activate(connector)
     }
+
+    useEffect(() => {
+        if (library) {
+            const interval = setInterval(() => {
+                library.getBlockNumber()
+                    .then(setBlockNumber)
+            }, 5000);
+
+            return () => {
+                clearInterval(interval)
+            }
+        }
+    }, [library])
 
     return (
         <div className='flex flex-col h-screen'>
@@ -59,7 +67,12 @@ function Layout({children}) {
                 </div>
             </div>
             <div className='flex-1'>
-                {!account && (
+                {!active && account && (
+                    <div className='h-full flex items-center justify-center bg-gray-50'>
+                        <Spin size='large'/>
+                    </div>
+                )}
+                {!active && !account && (
                     <CenteredContainer>
                         < Alert
                             message="Disconnected"
@@ -85,11 +98,15 @@ function Layout({children}) {
 }
 
 function MyApp({Component, pageProps}) {
+    const [blockNumber, setBlockNumber] = useState(0)
+
     return (
         <Web3ReactProvider getLibrary={getLibrary}>
-            <Layout>
-                <Component {...pageProps} />
-            </Layout>
+            <Context.Provider value={{blockNumber, setBlockNumber}}>
+                    <Layout>
+                        <Component {...pageProps} />
+                    </Layout>
+            </Context.Provider>
         </Web3ReactProvider>
     )
 }
