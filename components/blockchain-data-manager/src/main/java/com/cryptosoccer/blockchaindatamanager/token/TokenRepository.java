@@ -1,11 +1,11 @@
-package com.cryptosoccer.blockchaindatamanager.club;
+package com.cryptosoccer.blockchaindatamanager.token;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.transaction.Transactional;
 
-public interface ClubRepository extends JpaRepository<Club, Long> {
-    Club findByName(String name);
+public interface TokenRepository extends JpaRepository<Token, Long> {
+    Token findByName(String name);
     @Transactional
     void deleteByName(String name);
 }
