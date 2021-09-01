@@ -7,9 +7,9 @@ import {ethers, utils} from 'ethers'
 import clipboard from 'copy-to-clipboard'
 import {Context} from "./_app";
 
-async function getClubs(addr) {
+async function getTokens(addr) {
     try {
-        const res = await fetch(`${addr}/clubs`)
+        const res = await fetch(`${addr}/tokens`)
         return await res.json()
     } catch (e) {
         console.log('Unable to get Token Contract')
@@ -22,11 +22,11 @@ export async function getServerSideProps() {
     const blockchainDataManagerAddr =
         process.env['BLOCKCHAIN_DATA_MANAGER_ADDR'] || 'http://localhost:8080'
 
-    const clubs = await getClubs(blockchainDataManagerAddr)
+    const tokens = await getTokens(blockchainDataManagerAddr)
 
     return {
         props: {
-            clubs,
+            tokens,
         }
     }
 }
@@ -51,16 +51,16 @@ function Balance({qty, symbol, text, stacked}) {
     )
 }
 
-function ClubTitle({club}) {
+function TokenTitle({token}) {
     return (
         <div className='flex items-center space-x-3'>
-            <div><Avatar src={`/crypto-soccer/images/${club.name}.png`}/></div>
-            <div className='text-lg font-semibold'>{club.displayName}</div>
+            <div><Avatar src={`/defi-demo/images/${token.name}.webp`}/></div>
+            <div className='text-lg font-semibold'>{token.displayName}</div>
         </div>
     )
 }
 
-export default function Home({clubs}) {
+export default function Home({tokens}) {
     const {blockNumber} = useContext(Context)
 
     const {chainId, account, library} = useWeb3React()
@@ -77,74 +77,74 @@ export default function Home({clubs}) {
         if (!library) return
 
         const setupContracts = async () => {
-            for (const club of clubs) {
-                const contract = new ethers.Contract(club.address, club.abi, library.getSigner())
+            for (const token of tokens) {
+                const contract = new ethers.Contract(token.address, token.abi, library.getSigner())
 
-                setContracts(contracts => ({...contracts, [club.name]: contract}))
+                setContracts(contracts => ({...contracts, [token.name]: contract}))
 
                 contract.symbol()
-                    .then(symbol => setSymbols(symbols => ({...symbols, [club.name]: symbol})))
+                    .then(symbol => setSymbols(symbols => ({...symbols, [token.name]: symbol})))
 
-                setMintBurnQuantities(mintBurnQty => ({...mintBurnQty, [club.name]: 0}))
+                setMintBurnQuantities(mintBurnQty => ({...mintBurnQty, [token.name]: 0}))
             }
         }
 
         setupContracts()
-    }, [library, clubs, account])
+    }, [library, tokens, account, chainId])
 
     useEffect(() => {
         if (Object.keys(contracts).length === 0) return
 
-        const setupClubs = async () => {
-            const MINTER_ROLE = await contracts[clubs[0].name].MINTER_ROLE()
+        const setupTokens = async () => {
+            const MINTER_ROLE = await contracts[tokens[0].name].MINTER_ROLE()
 
-            // Will have performance issues with a big number of clubs
+            // Will have performance issues with a big number of tokens
             // TODO: Use restrained parallel execution
-            for (const club of clubs) {
-                const contract = contracts[club.name]
+            for (const token of tokens) {
+                const contract = contracts[token.name]
 
                 contract.totalSupply()
                     .then(totalSupply => {
-                        setTotalSupplies(totalSupplies => ({ ...totalSupplies, [club.name]: totalSupply }))
+                        setTotalSupplies(totalSupplies => ({ ...totalSupplies, [token.name]: totalSupply }))
                     })
 
                 contract.balanceOf(account)
                     .then(balance => {
-                        setBalances(balances => ({...balances, [club.name]: balance}))
+                        setBalances(balances => ({...balances, [token.name]: balance}))
                     })
 
                 contract.hasRole(MINTER_ROLE, account)
                     .then(isMinter => {
-                        setIsMinterList(isMinterList => ({...isMinterList, [club.name]: isMinter}))
+                        setIsMinterList(isMinterList => ({...isMinterList, [token.name]: isMinter}))
                     })
             }
         }
 
-        setupClubs()
-    }, [contracts, account, blockNumber])
+        setupTokens()
+    }, [contracts, account, chainId, blockNumber])
 
-    const handleMint = async club => {
-        if (!mintBurnQuantities[club.name]) {
+    const handleMint = async token => {
+        if (!mintBurnQuantities[token.name]) {
             message.error('Enter a valid quantity to Mint')
             return
         }
 
-        await contracts[club.name]
-            .mint(account, utils.parseEther(mintBurnQuantities[club.name].toString()))
+        await contracts[token.name]
+            .mint(account, utils.parseEther(mintBurnQuantities[token.name].toString()))
     }
 
-    const handleBurn = async club => {
-        if (!mintBurnQuantities[club.name]) {
+    const handleBurn = async token => {
+        if (!mintBurnQuantities[token.name]) {
             message.error('Enter a valid quantity to Burn')
             return
         }
 
-        await contracts[club.name]
-            .burn(utils.parseEther(mintBurnQuantities[club.name].toString()))
+        await contracts[token.name]
+            .burn(utils.parseEther(mintBurnQuantities[token.name].toString()))
     }
 
-    const handleApprove = async club => {
-        await contracts[club.name].becomeMinter()
+    const handleApprove = async token => {
+        await contracts[token.name].becomeMinter()
     }
 
     const copyToClipboard = text => {
@@ -155,42 +155,42 @@ export default function Home({clubs}) {
     return (
         <div className='h-full p-10 bg-gray-50'>
             <div className='container mx-auto max-w-screen-xl grid grid-cols-3 gap-8'>
-                {clubs.map(club => (
+                {tokens.map(token => (
                     <Card
-                        title={<ClubTitle club={club}/>}
-                        extra={<Balance qty={totalSupplies[club.name]} symbol={symbols[club.name]} text='Total Supply' stacked/>}
-                        key={club.name}
+                        title={<TokenTitle token={token}/>}
+                        extra={<Balance qty={totalSupplies[token.name]} symbol={symbols[token.name]} text='Total Supply' stacked/>}
+                        key={token.name}
                     >
                         <div className='flex flex-col space-y-4'>
                             <Input
-                                value={mintBurnQuantities[club.name]}
+                                value={mintBurnQuantities[token.name]}
                                 onChange={e => {
-                                    if (!e.target.value) setMintBurnQuantities({...mintBurnQuantities, [club.name]: null})
-                                    else setMintBurnQuantities({...mintBurnQuantities, [club.name]: Number(e.target.value)} )
+                                    if (!e.target.value) setMintBurnQuantities({...mintBurnQuantities, [token.name]: null})
+                                    else setMintBurnQuantities({...mintBurnQuantities, [token.name]: Number(e.target.value)} )
                                 }}
                                 min={0}
                                 type='number'
-                                suffix={<Balance qty={balances[club.name]} symbol={symbols[club.name]}/>}
-                                disabled={!isMinterList[club.name]}
+                                suffix={<Balance qty={balances[token.name]} symbol={symbols[token.name]}/>}
+                                disabled={!isMinterList[token.name]}
                             />
                             <div className='flex space-x-4'>
-                                {isMinterList[club.name] === undefined && <div className='w-full text-center'><Spin/></div>}
-                                {isMinterList[club.name] === false && (
-                                    <Button onClick={() => handleApprove(club)} className='w-full' type='primary' ghost>Get Minter Permission</Button>
+                                {isMinterList[token.name] === undefined && <div className='w-full text-center'><Spin/></div>}
+                                {isMinterList[token.name] === false && (
+                                    <Button onClick={() => handleApprove(token)} className='w-full' type='primary' ghost>Get Minter Permission</Button>
                                 )}
-                                {isMinterList[club.name] === true && (
+                                {isMinterList[token.name] === true && (
                                     <div className='w-full flex space-x-2'>
-                                        <Button onClick={() => handleMint(club)} type='primary' ghost className='w-full'>💎 Mint</Button>
-                                        <Button onClick={() => handleBurn(club)} className='w-full' danger>🔥 Burn</Button>
+                                        <Button onClick={() => handleMint(token)} type='primary' ghost className='w-full'>💎 Mint</Button>
+                                        <Button onClick={() => handleBurn(token)} className='w-full' danger>🔥 Burn</Button>
                                     </div>
                                 )}
                             </div>
                             <Divider/>
                             <button
-                                onClick={() => copyToClipboard(club.address)}
+                                onClick={() => copyToClipboard(token.address)}
                                 className='text-gray-600 font-mono text-xs text-left'
                             >
-                                {club.address}
+                                {token.address}
                             </button>
                         </div>
                     </Card>

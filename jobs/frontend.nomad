@@ -10,13 +10,13 @@ job "frontend" {
 
     service {
       name = "frontend"
-      tags = ["urlprefix-/crypto-soccer"]
+      tags = ["urlprefix-/defi-demo"]
       port = "frontend"
 
       check {
         type = "http"
         port = "frontend"
-        path = "/crypto-soccer"
+        path = "/defi-demo"
         interval = "10s"
         timeout = "1m"
       }

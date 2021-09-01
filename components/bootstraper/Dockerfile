@@ -9,4 +9,4 @@ RUN npm install
 
 COPY . .
 
-CMD npx hardhat run scripts/deploy.js --network cryptoSoccer
+CMD npm run deploy

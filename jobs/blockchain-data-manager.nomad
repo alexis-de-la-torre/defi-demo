@@ -68,6 +68,7 @@ job "blockchain-data-manager" {
 
       env {
         DATA_MANAGER_ADDR = "http://localhost:${NOMAD_HOST_PORT_blockchain_data_manager}/blockchain-data-manager"
+        BLOCKCHAIN_ADDR = "http://localhost:8545/blockchain"
       }
     }
 
