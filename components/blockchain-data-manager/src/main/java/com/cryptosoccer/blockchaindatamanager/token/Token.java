@@ -1,4 +1,4 @@
-package com.cryptosoccer.blockchaindatamanager.club;
+package com.cryptosoccer.blockchaindatamanager.token;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +14,7 @@ import javax.persistence.Lob;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Club {
+public class Token {
     @Id
     @GeneratedValue
     private Long id;

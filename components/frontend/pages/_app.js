@@ -48,7 +48,7 @@ function Layout({children}) {
                 <div className='flex justify-between container mx-auto max-w-screen-xl py-6'>
                     <div className='flex items-center space-x-10'>
                         <div className='font-mono font-bold text-lg tracking-wider uppercase'>
-                            <Link href='/'><a>💰⚽ Crypto Soccer</a></Link>
+                            <Link href='/'><a>💰🧪 DeFi Demo</a></Link>
                         </div>
                         <div>
                             <Divider type='vertical'/>
@@ -103,9 +103,9 @@ function MyApp({Component, pageProps}) {
     return (
         <Web3ReactProvider getLibrary={getLibrary}>
             <Context.Provider value={{blockNumber, setBlockNumber}}>
-                    <Layout>
-                        <Component {...pageProps} />
-                    </Layout>
+                <Layout>
+                    <Component {...pageProps} />
+                </Layout>
             </Context.Provider>
         </Web3ReactProvider>
     )
