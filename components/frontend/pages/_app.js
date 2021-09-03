@@ -103,9 +103,9 @@ function MyApp({Component, pageProps}) {
     return (
         <Web3ReactProvider getLibrary={getLibrary}>
             <Context.Provider value={{blockNumber, setBlockNumber}}>
-                    <Layout>
-                        <Component {...pageProps} />
-                    </Layout>
+                <Layout>
+                    <Component {...pageProps} />
+                </Layout>
             </Context.Provider>
         </Web3ReactProvider>
     )
