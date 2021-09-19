@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "hardhat run scripts/deploy.js --network enviroment"
+    "deploy": "hardhat deploy --network enviroment",
+    "deploy:uniswap": "hardhat deploy --tags uniswap --network enviroment",
+    "deploy:tokens": "hardhat deploy --tags tokens --network enviroment",
+    "deploy:lp-pairs": "hardhat deploy --tags lp-pairs --network enviroment"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +25,10 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.2.0",
-    "axios": "^0.21.1"
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "axios": "^0.21.1",
+    "hardhat-deploy": "^0.9.1",
+    "hardhat-deploy-ethers": "^0.3.0-beta.10"
   }
 }

@@ -1,6 +1,7 @@
-package com.cryptosoccer.blockchaindatamanager.token;
+package com.cryptosoccer.blockchaindatamanager.abi;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
@@ -12,16 +13,15 @@ import javax.persistence.Lob;
 
 @Entity
 @Data
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
-public class Token {
+@NoArgsConstructor
+public class Abi {
     @Id
     @GeneratedValue
     private Long id;
     private String name;
-    private String displayName;
-    private String address;
     @Lob
     @Type(type = "org.hibernate.type.TextType")
-    private String abi;
+    private String value;
 }

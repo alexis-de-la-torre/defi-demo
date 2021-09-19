@@ -5,7 +5,7 @@ import {useWeb3React, Web3ReactProvider} from "@web3-react/core"
 import {Web3Provider} from '@ethersproject/providers'
 import {Alert, Button, Divider, Spin, Statistic} from "antd";
 import {InjectedConnector} from "@web3-react/injected-connector";
-import {createContext, useContext, useEffect, useState} from "react";
+import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import Link from 'next/link'
 import CenteredContainer from "../components/CenteredContainer";
 
@@ -22,12 +22,12 @@ function Layout({children}) {
 
     const {chainId, account, library, activate, active} = useWeb3React()
 
-    useEffect(() => connect(), [])
-
-    const connect = () => {
+    const connect = useCallback(() => {
         const connector = new InjectedConnector({})
         activate(connector)
-    }
+    }, [activate])
+
+    useEffect(() => connect(), [connect])
 
     useEffect(() => {
         if (library) {
@@ -40,7 +40,7 @@ function Layout({children}) {
                 clearInterval(interval)
             }
         }
-    }, [library])
+    }, [library, setBlockNumber])
 
     return (
         <div className='flex flex-col h-screen'>
@@ -55,6 +55,9 @@ function Layout({children}) {
                         </div>
                         <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
                             <Link href='/'><a>Mint and Burn</a></Link>
+                        </div>
+                        <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
+                            <Link href='/lps'><a>Liquidity Pools</a></Link>
                         </div>
                         <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
                             <Link href='/faucet'><a>Faucet</a></Link>
