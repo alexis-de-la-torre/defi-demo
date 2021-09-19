@@ -3,30 +3,21 @@ import {useContext, useEffect, useState} from "react";
 import {Avatar, Button, Card, Divider, Input, Spin, message} from 'antd'
 
 import {useWeb3React} from "@web3-react/core"
-import {ethers, utils} from 'ethers'
-import clipboard from 'copy-to-clipboard'
+import {Contract, utils} from 'ethers'
 import {Context} from "./_app";
-
-async function getTokens(addr) {
-    try {
-        const res = await fetch(`${addr}/tokens`)
-        return await res.json()
-    } catch (e) {
-        console.log('Unable to get Token Contract')
-        console.error(e)
-        return null
-    }
-}
+import Address from "../components/Address.js"
+import {getAbi, getContractsWithAbi} from "../utils/bdmUtil.js"
 
 export async function getServerSideProps() {
-    const blockchainDataManagerAddr =
-        process.env['BLOCKCHAIN_DATA_MANAGER_ADDR'] || 'http://localhost:8080'
+    // TODO: Handle errors
 
-    const tokens = await getTokens(blockchainDataManagerAddr)
+    const tokensDto = await getContractsWithAbi('token')
+    const tokenAbi = await getAbi('token')
 
     return {
         props: {
-            tokens,
+            tokensDto,
+            tokenAbi,
         }
     }
 }
@@ -51,25 +42,22 @@ function Balance({qty, symbol, text, stacked}) {
     )
 }
 
-function TokenTitle({token}) {
+function TokenTitle({name, displayName}) {
     return (
         <div className='flex items-center space-x-3'>
-            <div><Avatar src={`/defi-demo/images/${token.name}.webp`}/></div>
-            <div className='text-lg font-semibold'>{token.displayName}</div>
+            <div><Avatar src={`/defi-demo/images/${name}.webp`}/></div>
+            <div className='text-lg font-semibold'>{displayName}</div>
         </div>
     )
 }
 
-export default function Home({tokens}) {
+export default function Home({tokensDto, tokenAbi}) {
     const {blockNumber} = useContext(Context)
 
     const {chainId, account, library} = useWeb3React()
 
+    const [tokens, setTokens] = useState()
     const [contracts, setContracts] = useState({})
-    const [symbols, setSymbols] = useState({})
-    const [totalSupplies, setTotalSupplies] = useState({})
-    const [isMinterList, setIsMinterList] = useState({})
-    const [balances, setBalances] = useState({})
 
     const [mintBurnQuantities, setMintBurnQuantities] = useState({})
 
@@ -77,51 +65,47 @@ export default function Home({tokens}) {
         if (!library) return
 
         const setupContracts = async () => {
-            for (const token of tokens) {
-                const contract = new ethers.Contract(token.address, token.abi, library.getSigner())
-
-                setContracts(contracts => ({...contracts, [token.name]: contract}))
-
-                contract.symbol()
-                    .then(symbol => setSymbols(symbols => ({...symbols, [token.name]: symbol})))
-
-                setMintBurnQuantities(mintBurnQty => ({...mintBurnQty, [token.name]: 0}))
+            for (const tokenDto of tokensDto) {
+                const tokenContract = new Contract(tokenDto.address, tokenAbi.value, library.getSigner())
+                setContracts(contracts => ({...contracts, [tokenDto.name]: tokenContract}))
+                setMintBurnQuantities(mintBurnQty => ({...mintBurnQty, [tokenDto.name]: 0}))
             }
         }
 
         setupContracts()
-    }, [library, tokens, account, chainId])
+    }, [library, tokensDto, tokenAbi, account, chainId])
 
     useEffect(() => {
         if (Object.keys(contracts).length === 0) return
 
         const setupTokens = async () => {
-            const MINTER_ROLE = await contracts[tokens[0].name].MINTER_ROLE()
+            const MINTER_ROLE = await contracts[tokensDto[0].name].MINTER_ROLE()
 
-            // Will have performance issues with a big number of tokens
+            let tokensAgg = []
+
+            // May have performance issues with a big number of tokens
             // TODO: Use restrained parallel execution
-            for (const token of tokens) {
-                const contract = contracts[token.name]
+            for (const tokenDto of tokensDto) {
+                const tokenContract = contracts[tokenDto.name]
 
-                contract.totalSupply()
-                    .then(totalSupply => {
-                        setTotalSupplies(totalSupplies => ({ ...totalSupplies, [token.name]: totalSupply }))
-                    })
+                const token = {
+                    name: tokenDto.name,
+                    address: tokenDto.address,
+                    displayName: await tokenContract.name(),
+                    symbol: await tokenContract.symbol(),
+                    totalSupply: await tokenContract.totalSupply(),
+                    balance: await tokenContract.balanceOf(account),
+                    isMinter: await tokenContract.hasRole(MINTER_ROLE, account),
+                }
 
-                contract.balanceOf(account)
-                    .then(balance => {
-                        setBalances(balances => ({...balances, [token.name]: balance}))
-                    })
-
-                contract.hasRole(MINTER_ROLE, account)
-                    .then(isMinter => {
-                        setIsMinterList(isMinterList => ({...isMinterList, [token.name]: isMinter}))
-                    })
+                tokensAgg.push(token)
             }
+
+            setTokens(tokensAgg)
         }
 
         setupTokens()
-    }, [contracts, account, chainId, blockNumber])
+    }, [contracts, tokensDto, account, chainId, blockNumber])
 
     const handleMint = async token => {
         if (!mintBurnQuantities[token.name]) {
@@ -147,18 +131,18 @@ export default function Home({tokens}) {
         await contracts[token.name].becomeMinter()
     }
 
-    const copyToClipboard = text => {
-        clipboard(text)
-        message.success('Address copied to keyboard')
-    }
-
     return (
         <div className='h-full p-10 bg-gray-50'>
             <div className='container mx-auto max-w-screen-xl grid grid-cols-3 gap-8'>
-                {tokens.map(token => (
+                {!tokens && tokensDto.map(_ => (
+                  <Card key={tokensDto.name}>
+                      <div className='flex justify-center items-center h-48'><Spin/></div>
+                  </Card>
+                ))}
+                {tokens && tokens.map(token => (
                     <Card
-                        title={<TokenTitle token={token}/>}
-                        extra={<Balance qty={totalSupplies[token.name]} symbol={symbols[token.name]} text='Total Supply' stacked/>}
+                        title={<TokenTitle name={token.name} displayName={token.displayName}/>}
+                        extra={<Balance qty={token.totalSupply} symbol={token.symbol} text='Total Supply' stacked/>}
                         key={token.name}
                     >
                         <div className='flex flex-col space-y-4'>
@@ -170,15 +154,20 @@ export default function Home({tokens}) {
                                 }}
                                 min={0}
                                 type='number'
-                                suffix={<Balance qty={balances[token.name]} symbol={symbols[token.name]}/>}
-                                disabled={!isMinterList[token.name]}
+                                suffix={<Balance qty={token.balance} symbol={token.symbol}/>}
+                                disabled={!token.isMinter}
                             />
                             <div className='flex space-x-4'>
-                                {isMinterList[token.name] === undefined && <div className='w-full text-center'><Spin/></div>}
-                                {isMinterList[token.name] === false && (
-                                    <Button onClick={() => handleApprove(token)} className='w-full' type='primary' ghost>Get Minter Permission</Button>
+                                {!token.isMinter && (
+                                    <Button
+                                      onClick={() => handleApprove(token)}
+                                      className='w-full' type='primary'
+                                      ghost
+                                    >
+                                        Get Minter Permission
+                                    </Button>
                                 )}
-                                {isMinterList[token.name] === true && (
+                                {token.isMinter && (
                                     <div className='w-full flex space-x-2'>
                                         <Button onClick={() => handleMint(token)} type='primary' ghost className='w-full'>💎 Mint</Button>
                                         <Button onClick={() => handleBurn(token)} className='w-full' danger>🔥 Burn</Button>
@@ -186,12 +175,7 @@ export default function Home({tokens}) {
                                 )}
                             </div>
                             <Divider/>
-                            <button
-                                onClick={() => copyToClipboard(token.address)}
-                                className='text-gray-600 font-mono text-xs text-left'
-                            >
-                                {token.address}
-                            </button>
+                            <Address address={token.address}/>
                         </div>
                     </Card>
                 ))}
