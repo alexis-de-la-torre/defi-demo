@@ -155,17 +155,14 @@ export default function Lps({tokensDto, tokenAbi, routerDto, routerAbi, wethDto}
                 tokensAgg.push(token)
             }
 
-            setFromToken(tokensAgg[0])
-            setToToken(tokensAgg[1])
+            if (!fromToken) setFromToken(tokensAgg[0])
+            if (!toToken) setToToken(tokensAgg[1])
+
             setTokens(tokensAgg)
         }
 
         setupTokens()
     }, [tokensDto, tokenContracts, account, chainId, blockNumber])
-
-    useEffect(() => {
-
-    }, [fromToken, fromQty])
 
     const handleSwap = async () => {
         await routerContract.swapExactTokensForTokens(
@@ -225,11 +222,11 @@ export default function Lps({tokensDto, tokenAbi, routerDto, routerAbi, wethDto}
                     <SwapItem title='Swap From:' tokens={tokens} selectedToken={fromToken} qty={fromQty} onChange={handleFromChange}/>
                     <Divider><div className='text-2xl'>👇</div></Divider>
                     <SwapItem title='Swap to (est.):' tokens={tokens} selectedToken={toToken} qty={toQty} onChange={handleToChange}/>
-                    {fromToken && fromToken.isApproved && fromToken.balance.lt(utils.parseEther(fromQty.toString())) &&
+                    {fromToken && fromToken.balance.lt(utils.parseEther(fromQty.toString())) &&
                         <Button type='primary' size='large' disabled>Not Enough Balance</Button>}
                     {fromToken && fromToken.isApproved && fromToken.balance.gte(utils.parseEther(fromQty.toString())) &&
                         <Button type='primary' size='large' onClick={handleSwap}>Swap</Button>}
-                    {fromToken && !fromToken.isApproved &&
+                    {fromToken && !fromToken.isApproved && fromToken.balance.gte(utils.parseEther(fromQty.toString())) &&
                         <Button type='primary' size='large' onClick={handleApprove}>Approve {fromToken.symbol}</Button>}
                 </div>
             </Card>
