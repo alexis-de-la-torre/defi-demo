@@ -9,8 +9,8 @@ module.exports = async function({ethers, deployments}) {
 
   const [deployer] = await ethers.getSigners()
 
-  const wethAmt = ethers.utils.parseEther('100.0')
-  const tokenAmt = ethers.utils.parseEther('100.0')
+  const wethAmt = ethers.utils.parseEther('10000.0')
+  const tokenAmt = ethers.utils.parseEther('10000.0')
 
   const factoryArtifact = await getArtifact('UniswapV2Factory')
   const routerArtifact = await getArtifact('UniswapV2Router02')

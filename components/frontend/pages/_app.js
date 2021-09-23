@@ -54,7 +54,10 @@ function Layout({children}) {
                             <Divider type='vertical'/>
                         </div>
                         <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
-                            <Link href='/'><a>Mint and Burn</a></Link>
+                            <Link href='/'><a>Mint</a></Link>
+                        </div>
+                        <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
+                            <Link href='/swap'><a>Swap</a></Link>
                         </div>
                         <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
                             <Link href='/lps'><a>Liquidity Pools</a></Link>
