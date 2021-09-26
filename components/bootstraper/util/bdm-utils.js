@@ -17,6 +17,7 @@ async function getContract(name) {
 
 async function getTokens() {
   return get('/contracts?abiName=token')
+      .then(res => res.data)
 }
 
 async function saveAbi(name, abi) {

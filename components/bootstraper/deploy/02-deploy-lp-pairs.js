@@ -2,6 +2,12 @@ const {saveContract} = require("../util/bdm-utils.js")
 const {saveAbi} = require("../util/bdm-utils.js")
 const {getContract} = require("../util/bdm-utils.js")
 const {getTokens} = require("../util/bdm-utils.js")
+const {getPrices} = require("../util/coingecko-utils.js")
+const fs = require('fs')
+
+const POOL_USD = 50_000_000
+
+const tokens = JSON.parse(fs.readFileSync('resources/tokens.json'))
 
 module.exports = async function({ethers, deployments}) {
   const {getArtifact} = deployments
@@ -9,8 +15,10 @@ module.exports = async function({ethers, deployments}) {
 
   const [deployer] = await ethers.getSigners()
 
-  const wethAmt = ethers.utils.parseEther('10000.0')
-  const tokenAmt = ethers.utils.parseEther('10000.0')
+  const ethPrice = (await getPrices(['ethereum']))['ethereum'].usd
+  const tokenPrices = await getPrices(tokens.map(t => t.name))
+
+  const wethAmt = POOL_USD / 2 / ethPrice
 
   const factoryArtifact = await getArtifact('UniswapV2Factory')
   const routerArtifact = await getArtifact('UniswapV2Router02')
@@ -21,7 +29,7 @@ module.exports = async function({ethers, deployments}) {
   const factoryAddr = (await getContract('factory')).data.address
   const routerAddr = (await getContract('router')).data.address
   const wethAddr = (await getContract('weth')).data.address
-  const tokenAddrs = (await getTokens()).data.map(x => x.address)
+  const tokensDto = await getTokens()
 
   const factory = new Contract(factoryAddr, factoryArtifact.abi, deployer)
   const router = new Contract(routerAddr, routerArtifact.abi, deployer)
@@ -29,8 +37,15 @@ module.exports = async function({ethers, deployments}) {
 
   const abiId = await saveAbi('pair', pairArtifact.abi)
 
-  for (let i = 0; i < tokenAddrs.length; i++) {
-    const token = new Contract(tokenAddrs[i], tokenArtifact.abi, deployer)
+  console.log('Creating Pairs,', 'ETH price:', ethPrice)
+
+  for (let i = 0; i < tokensDto.length; i++) {
+    const tokenDto = tokensDto[i]
+
+    const token = new Contract(tokenDto.address, tokenArtifact.abi, deployer)
+
+    const tokenPrice = tokenPrices[tokenDto.name].usd
+    const tokenAmt = POOL_USD / 2 / tokenPrice
 
     const name = await token.name()
     const symbol = await token.symbol()
@@ -38,24 +53,32 @@ module.exports = async function({ethers, deployments}) {
 
     console.log('Creating Pair for', name)
 
-    console.log('Minting', ethers.utils.formatEther(tokenAmt), symbol)
+    console.log('Minting',
+      tokenAmt,
+      symbol,
+      'with value of',
+      tokenAmt * tokenPrice, 'USD')
 
     await token.becomeMinter()
-    await token.mint(deployer.address, tokenAmt)
+    await token.mint(deployer.address, ethers.utils.parseEther(tokenAmt.toString()))
 
     console.log(`Adding liquidity to pair:`, pairName)
+    console.log('Pairing with:',
+      wethAmt,
+      'ETH with value of',
+      wethAmt * ethPrice)
 
     await weth.approve(routerAddr, ethers.constants.MaxUint256)
     await token.approve(routerAddr, ethers.constants.MaxUint256)
 
     await router.addLiquidityETH(
       token.address,
-      tokenAmt,
-      tokenAmt,
-      wethAmt,
+      ethers.utils.parseEther(tokenAmt.toString()),
+      ethers.utils.parseEther(tokenAmt.toString()),
+      ethers.utils.parseEther(wethAmt.toString()),
       deployer.address,
       ethers.constants.MaxUint256,
-      {value: wethAmt}
+      {value: ethers.utils.parseEther(wethAmt.toString())}
     )
 
     await saveContract(

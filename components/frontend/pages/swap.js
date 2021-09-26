@@ -188,13 +188,12 @@ export default function Lps({tokensDto, tokenAbi, routerDto, routerAbi, wethDto}
         if (qty > 0) {
             const amtOut = await routerContract.getAmountsOut(
               await utils.parseEther(qty.toString()),
-              [fromToken.address, wethDto.address, toToken.address])
+              [token.address, wethDto.address, toToken.address])
 
             setToQty(utils.formatEther(amtOut[2]))
         } else {
             setToQty(0)
         }
-
     }
 
     const handleToChange = async ({qty, token}) => {
@@ -206,7 +205,7 @@ export default function Lps({tokensDto, tokenAbi, routerDto, routerAbi, wethDto}
         if (qty > 0) {
             const amtOut = await routerContract.getAmountsOut(
               await utils.parseEther(qty.toString()),
-              [toToken.address, wethDto.address, fromToken.address])
+              [token.address, wethDto.address, fromToken.address])
 
             setFromQty(utils.formatEther(amtOut[2]))
         } else {
