@@ -63,6 +63,9 @@ function Layout({children}) {
                             <Link href='/lps'><a>Liquidity Pools</a></Link>
                         </div>
                         <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
+                            <Link href='/market-prices'><a>Market Prices</a></Link>
+                        </div>
+                        <div className='underline text-blue-600 hover:text-blue-800 visited:text-purple-600'>
                             <Link href='/faucet'><a>Faucet</a></Link>
                         </div>
                     </div>
