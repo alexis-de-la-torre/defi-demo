@@ -8,7 +8,8 @@
     "deploy": "hardhat deploy --network enviroment --reset",
     "deploy:uniswap": "hardhat deploy --tags uniswap --network enviroment",
     "deploy:tokens": "hardhat deploy --tags tokens --network enviroment",
-    "deploy:lp-pairs": "hardhat deploy --tags lp-pairs --network enviroment"
+    "deploy:lp-pairs": "hardhat deploy --tags lp-pairs --network enviroment",
+    "deploy:oracles": "hardhat deploy --tags oracles --network enviroment"
   },
   "keywords": [],
   "author": "",
