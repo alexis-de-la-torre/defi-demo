@@ -7,6 +7,7 @@ import {Contract, utils} from 'ethers'
 import {Context} from "./_app";
 import Address from "../components/Address.js"
 import {getAbi, getContractsWithAbi} from "../utils/bdmUtil.js"
+import TokenTitle from "../components/TokenTitle.js"
 
 export async function getServerSideProps() {
     // TODO: Handle errors
@@ -38,15 +39,6 @@ function Balance({qty, symbol, text, stacked}) {
                 <div>{utils.formatEther(qty)}</div>
                 <div>{symbol}</div>
             </div>
-        </div>
-    )
-}
-
-function TokenTitle({name, displayName}) {
-    return (
-        <div className='flex items-center space-x-3'>
-            <div><Avatar src={`/defi-demo/images/${name}.webp`}/></div>
-            <div className='text-lg font-semibold'>{displayName}</div>
         </div>
     )
 }
