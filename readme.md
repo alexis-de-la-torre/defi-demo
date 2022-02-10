@@ -15,7 +15,7 @@ Sprint boards can be found on Github projects.
 
 Epics and Stories are represented on Github issues.
 
-Technical Designs for all components can be found at https://www.notion.so/Crypto-Soccer-e97bf8b038234a23a82259178b1456e0
+Technical Designs for all components can be found at https://resilient-crabapple-2d6.notion.site/Defi-Demo-Project-e97bf8b038234a23a82259178b1456e0
 
 # Metamask Configuration 
 The project uses a private Ethereum node that you can connect to using the following Metamask network settings:
